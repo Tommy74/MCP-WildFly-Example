@@ -10,7 +10,9 @@ import org.eclipse.microprofile.faulttolerance.Retry;
 import org.eclipse.microprofile.faulttolerance.Timeout;
 
 @RegisterAIService(
+        // this is the qwen3 LLM served by ollama
         chatModelName = "chat-model",
+        // these are tools served by the mcp-server project
         toolProviderName = "mcp-tools",
         scope = ApplicationScoped.class
 )
