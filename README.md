@@ -199,6 +199,27 @@ curl -s -X POST http://localhost:8080/mcp-server/mcp   -H "Content-Type: applica
 
 the JSON payload contains the MCP description of MCP tools exposed by this MCP endpoint;
 
+## Consume MCP Server from Claude Code
+
+Claude Code can act as the MCP client, so neither `mcp-client` nor Ollama is required for this scenario. Start `mcp-server` as shown above, then register its Streamable HTTP endpoint from your terminal:
+
+```bash
+claude mcp add --transport http weather http://localhost:8080/mcp-server/mcp
+claude mcp list
+```
+
+Start a new Claude Code conversation and use `/mcp` to confirm that `weather` is connected. Then ask:
+
+> Use the `weather` MCP server to get the current weather for Milan in celsius.
+
+Claude Code should call the remote `getWeather` tool and return the server's response.
+
+The command uses local scope by default. To create a shared `.mcp.json` in the project instead, add the server with `--scope project`.
+
+If Claude Code runs in a container or on another machine, `localhost` refers to that environment. Replace it with an address at which that environment can reach the MCP server.
+
+See the [Claude Code MCP documentation](https://code.claude.com/docs/en/mcp) for scopes and authentication options.
+
 ## MCP Client
 
 `WeatherMcpProducer` creates a remote MCP client and exposes its `getWeather` tool to `WeatherAIService` through LangChain4j CDI. The MCP endpoint is configured with `mcp.server.url` in `microprofile-config.properties`.
