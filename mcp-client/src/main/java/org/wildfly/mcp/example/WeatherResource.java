@@ -12,29 +12,31 @@ import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
-import static dev.langchain4j.cdi.plugin.CommonLLMPluginCreator.LOGGER;
-
 @ApplicationScoped
 @Path("/weather")
 public class WeatherResource {
 
-    @Inject
-    WeatherAIService aiService;
+    private static final Logger LOGGER = Logger.getLogger(WeatherResource.class.getName());
 
     @Inject
-    @ConfigProperty(name = "mcp.server.url")
-    String mcpServerUrl;
+    WeatherAIService aiService;
 
     @GET
     @Produces(MediaType.TEXT_PLAIN)
     public Response chatWithAssistant(@QueryParam("city") String city) {
-        try {
-            return Response.ok(aiService.chat(city))
+        if (city == null || city.isBlank()) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("The 'city' query parameter is required and must not be blank.")
                     .build();
+        }
+
+        String requestedCity = city.trim();
+        try {
+            return Response.ok(aiService.chat(requestedCity)).build();
         } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Error while getting weather for city: " + city, e);
+            LOGGER.log(Level.SEVERE, "Error while getting weather for city: " + requestedCity, e);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity("My failure reason is:\n\n" + e.getMessage())
+                    .entity("The weather service is temporarily unavailable. Please try again later.")
                     .build();
         }
     }

@@ -35,14 +35,25 @@ Both client and server projects rely on [](https://github.com/langchain4j/langch
 
 ## Local LLM
 
-We use [](https://docs.ollama.com/docker) to runa simple LLM locally with CPU only hardware:
+We use [](https://docs.ollama.com/docker) to run a simple LLM locally with CPU only hardware:
 
+Start ollama:
 ```bash
 podman run -it --rm -v ollama:/root/.ollama -p 11434:11434 --name ollama ollama/ollama
 ```
 
+Download a model:
 ```bash
-podman exec -it ollama ollama run qwen3.5:4b
+podman exec -it ollama ollama pull qwen3.5:4b
+```
+
+Check the model is being served: 
+```bash
+curl http://localhost:11434/api/chat -d '{
+  "model": "qwen3.5:4b",
+  "messages": [{"role": "user", "content": "Hello!"}],
+  "stream": false
+}'
 ```
 
 ## MCP Server
@@ -71,7 +82,7 @@ public class WeatherService {
 ### Build MCP Server
 
 ```bash
-mvn clean install -DskipTests -s ~/.m2/settings-empty.xml
+mvn clean install -DskipTests -s settings-empty.xml
 ```
 
 ### Run MCP Server
@@ -139,4 +150,34 @@ curl -s -X POST http://localhost:8080/mcp-server/mcp   -H "Content-Type: applica
 the JSON payload contains the MCP description of MCP tools exposed by this MCP endpoint;
 
 ## MCP Client
+
+`WeatherMcpProducer` creates a remote MCP client and exposes its `getWeather` tool to `WeatherAIService` through LangChain4j CDI. The MCP endpoint is configured with `mcp.server.url` in `microprofile-config.properties`.
+
+### Build both applications
+
+From the repository root:
+
+```bash
+mvn clean install -DskipTests -s settings-empty.xml
+```
+
+### Run the client
+
+Keep Ollama and the MCP server running, then start the client on port 8081 so it does not conflict with the server:
+
+```bash
+cd mcp-client
+java -Djboss.socket.binding.port-offset=1 -jar target/mcp-client-bootable.jar
+```
+
+Ask for the weather through the client:
+
+```bash
+curl --get --data-urlencode 'city=Milan' http://localhost:8081/mcp-client/weather
+It is currently sunny and 22°C in Rome.
+```
+
+The model should call the remote `getWeather` MCP tool and return its result. A missing or blank `city` returns HTTP 400.
+
+To use a different MCP endpoint, add `-Dmcp.server.url=http://host:port/mcp` to the Java command.
 

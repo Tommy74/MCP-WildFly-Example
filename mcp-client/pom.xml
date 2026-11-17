@@ -232,12 +232,17 @@
             <version>${langchain4j-cdi.version}</version>
         </dependency>
 
-        <!-- Source: https://mvnrepository.com/artifact/dev.langchain4j/langchain4j-mcp -->
+        <!-- Chat model configured in META-INF/microprofile-config.properties -->
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-ollama</artifactId>
+        </dependency>
+
+        <!-- MCP Streamable HTTP transport, client, and tool provider -->
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-mcp</artifactId>
             <version>1.23.0-beta33</version>
-            <scope>compile</scope>
         </dependency>
 
         <!-- microprofile -->
