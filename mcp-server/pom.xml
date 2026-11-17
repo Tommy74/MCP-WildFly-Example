@@ -38,7 +38,6 @@
         <maven.compiler.release>17</maven.compiler.release>
 
         <!-- MCP -->
-        <langchain4j-cdi.version>1.5.1</langchain4j-cdi.version>
         <langchain4j-cdi-mcp-server>1.5.0</langchain4j-cdi-mcp-server>
     </properties>
 
@@ -122,13 +121,6 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
-            <dependency>
-                <groupId>org.wildfly.bom</groupId>
-                <artifactId>wildfly-expansion</artifactId>
-                <version>${version.wildfly.bom}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
 
             <!--Define the JUnit5 bom. WildFly BOM still contains JUnit4, so we have to declare a version here -->
             <dependency>
@@ -154,33 +146,6 @@
         <dependency>
             <groupId>jakarta.ws.rs</groupId>
             <artifactId>jakarta.ws.rs-api</artifactId>
-            <scope>provided</scope>
-        </dependency>
-
-        <!-- Servlet API -->
-        <dependency>
-            <groupId>jakarta.servlet</groupId>
-            <artifactId>jakarta.servlet-api</artifactId>
-            <scope>provided</scope>
-        </dependency>
-
-        <!-- JSP API. Required by Eclipse in order to support taglibraries like JSTL. -->
-        <dependency>
-            <groupId>jakarta.servlet.jsp</groupId>
-            <artifactId>jakarta.servlet.jsp-api</artifactId>
-            <scope>provided</scope>
-        </dependency>
-
-        <!-- Import the EJB API, we use provided scope as the API is included in WildFly / JBoss EAP -->
-        <dependency>
-            <groupId>jakarta.ejb</groupId>
-            <artifactId>jakarta.ejb-api</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <!-- Required for e.g. "javax.annotation.PostConstruct" -->
-        <dependency>
-            <groupId>jakarta.annotation</groupId>
-            <artifactId>jakarta.annotation-api</artifactId>
             <scope>provided</scope>
         </dependency>
 
@@ -210,18 +175,6 @@
             <groupId>dev.langchain4j.cdi.mcp</groupId>
             <artifactId>langchain4j-cdi-mcp-portable-ext</artifactId>
             <version>${langchain4j-cdi-mcp-server}</version>
-        </dependency>
-
-        <!-- microprofile -->
-        <dependency>
-            <groupId>org.eclipse.microprofile.config</groupId>
-            <artifactId>microprofile-config-api</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.microprofile.fault-tolerance</groupId>
-            <artifactId>microprofile-fault-tolerance-api</artifactId>
-            <scope>provided</scope>
         </dependency>
 
     </dependencies>

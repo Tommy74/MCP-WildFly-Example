@@ -1,2 +1,5 @@
 .idea
+**/.idea
 **/target
+mcp-server/.idea
+mcp-client/.idea

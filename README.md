@@ -16,9 +16,21 @@ mvn archetype:generate -DgroupId=org.wildfly.mcp.example -DartifactId=mcp-server
 mvn archetype:generate -DgroupId=org.wildfly.mcp.example -DartifactId=mcp-client -Dversion=1.0-SNAPSHOT -DarchetypeGroupId=org.wildfly.archetype -DarchetypeArtifactId=wildfly-jakartaee-webapp-archetype -DarchetypeVersion=42.0.0.Final -s ~/.m2/settings-empty.xml 
 ```
 
-## LangChain4J-CDI
+## LangChain4j and LangChain4j-CDI
 
-Both client and server projects rely on [](https://github.com/langchain4j/langchain4j-cdi) for AI:
+This example uses two related projects:
+
+- [LangChain4j](https://github.com/langchain4j/langchain4j): the core Java library for LLM applications. It provides chat model integrations (e.g. Ollama), AI services and the MCP client (`langchain4j-mcp`)
+- [LangChain4j-CDI](https://github.com/langchain4j/langchain4j-cdi): plugs LangChain4j into Jakarta EE / CDI. AI services become CDI beans (`@RegisterAIService`), models are configured with MicroProfile Config, and MicroProfile Fault Tolerance annotations work on AI services. It also provides an MCP server that exposes CDI beans as MCP tools
+
+| Project | LangChain4j | LangChain4j-CDI |
+|---------|-------------|-----------------|
+| `mcp-server` | not used directly | MCP server: `langchain4j-cdi-mcp-server`, `langchain4j-cdi-mcp-portable-ext` |
+| `mcp-client` | `langchain4j-mcp` (MCP client), `langchain4j-ollama` (chat model) | AI service integration: `langchain4j-cdi-core`, `langchain4j-cdi-portable-ext`, `langchain4j-cdi-config`, `langchain4j-cdi-fault-tolerance` |
+
+### MCP server
+
+The server only needs LangChain4j-CDI. Its MCP modules publish the `/mcp` endpoint (Streamable HTTP over Jakarta REST) and register every CDI bean method annotated with `@Tool` as an MCP tool. The `@Tool`/`@ToolArg` annotations come from `org.mcpjava:mcp-server-api`, which these modules pull in:
 
 ```xml
 <dependency>
@@ -30,6 +42,44 @@ Both client and server projects rely on [](https://github.com/langchain4j/langch
     <groupId>dev.langchain4j.cdi.mcp</groupId>
     <artifactId>langchain4j-cdi-mcp-portable-ext</artifactId>
     <version>1.5.0</version>
+</dependency>
+```
+
+### MCP client
+
+The client uses both projects:
+
+- LangChain4j provides the MCP client (`DefaultMcpClient`, `StreamableHttpMcpTransport` and `McpToolProvider`, used in `WeatherMcpProducer`) and the Ollama chat model. Versions come from `langchain4j-bom`; `langchain4j-mcp` is still a beta, so its version is set explicitly
+- LangChain4j-CDI turns the `WeatherAIService` interface into a CDI bean (`@RegisterAIService`), builds the chat model from `microprofile-config.properties`, and applies `@Retry`/`@Timeout`/`@Fallback` to it
+
+```xml
+<!-- LangChain4j -->
+<dependency>
+    <groupId>dev.langchain4j</groupId>
+    <artifactId>langchain4j-mcp</artifactId>
+    <version>1.23.0-beta33</version>
+</dependency>
+<dependency>
+    <groupId>dev.langchain4j</groupId>
+    <artifactId>langchain4j-ollama</artifactId> <!-- version from langchain4j-bom 1.23.0 -->
+</dependency>
+
+<!-- LangChain4j-CDI (version 1.5.1) -->
+<dependency>
+    <groupId>dev.langchain4j.cdi</groupId>
+    <artifactId>langchain4j-cdi-core</artifactId>
+</dependency>
+<dependency>
+    <groupId>dev.langchain4j.cdi</groupId>
+    <artifactId>langchain4j-cdi-portable-ext</artifactId>
+</dependency>
+<dependency>
+    <groupId>dev.langchain4j.cdi.mp</groupId>
+    <artifactId>langchain4j-cdi-config</artifactId>
+</dependency>
+<dependency>
+    <groupId>dev.langchain4j.cdi.mp</groupId>
+    <artifactId>langchain4j-cdi-fault-tolerance</artifactId>
 </dependency>
 ```
 
@@ -174,7 +224,7 @@ Ask for the weather through the client:
 
 ```bash
 curl --get --data-urlencode 'city=Milan' http://localhost:8081/mcp-client/weather
-It is currently sunny and 22°C in Rome.
+It is currently sunny with a temperature of 22°C in Milan.
 ```
 
 The model should call the remote `getWeather` MCP tool and return its result. A missing or blank `city` returns HTTP 400.
